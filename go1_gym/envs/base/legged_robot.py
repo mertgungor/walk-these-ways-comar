@@ -1518,6 +1518,10 @@ class LeggedRobot(BaseTask):
         self.dof_names = self.gym.get_asset_dof_names(self.robot_asset)
         self.num_bodies = len(body_names)
         self.num_dofs = len(self.dof_names)
+        print("------------ BODY NAMES ------------")
+        print(body_names)
+        print("------------ BODY NAMES ------------")
+
         feet_names = [s for s in body_names if self.cfg.asset.foot_name in s]
         penalized_contact_names = []
         for name in self.cfg.asset.penalize_contacts_on:

@@ -4,9 +4,18 @@ def train_go1(headless=True):
     assert isaacgym
     import torch
 
+    # robot = "go1"
+    robot = "aselsan"
+
+
     from go1_gym.envs.base.legged_robot_config import Cfg
-    from go1_gym.envs.go1.go1_config import config_go1
-    from go1_gym.envs.go1.velocity_tracking import VelocityTrackingEasyEnv
+
+    if robot == "go1":
+      from go1_gym.envs.go1.go1_config import config_go1
+      from go1_gym.envs.go1.velocity_tracking import VelocityTrackingEasyEnv
+    elif robot == "aselsan":
+      from go1_gym.envs.aselsan.aselsan_config import config_go1
+      from go1_gym.envs.aselsan.velocity_tracking import VelocityTrackingEasyEnv
 
     from ml_logger import logger
 
@@ -88,7 +97,7 @@ def train_go1(headless=True):
     Cfg.env.observe_gait_commands = True
     Cfg.env.observe_timing_parameter = False
     Cfg.env.observe_clock_inputs = True
-    Cfg.env.num_envs = 625
+    Cfg.env.num_envs = 4000
 
     Cfg.domain_rand.tile_height_range = [-0.0, 0.0]
     Cfg.domain_rand.tile_height_curriculum = False
