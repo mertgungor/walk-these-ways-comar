@@ -97,7 +97,7 @@ def train_go1(headless=True):
     Cfg.env.observe_gait_commands = True
     Cfg.env.observe_timing_parameter = False
     Cfg.env.observe_clock_inputs = True
-    Cfg.env.num_envs = 4000
+    Cfg.env.num_envs = 1
 
     Cfg.domain_rand.tile_height_range = [-0.0, 0.0]
     Cfg.domain_rand.tile_height_curriculum = False

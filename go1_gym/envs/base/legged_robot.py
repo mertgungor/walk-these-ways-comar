@@ -316,7 +316,7 @@ class LeggedRobot(BaseTask):
         #                               self.actions
         #                               ), dim=-1)
 
-        if self.cfg.env.observe_command:
+        if self.cfg.env.observe_command: # True
             self.obs_buf = torch.cat((self.projected_gravity,
                                       self.commands * self.commands_scale,
                                       (self.dof_pos[:, :self.num_actuated_dof] - self.default_dof_pos[:,
@@ -324,49 +324,65 @@ class LeggedRobot(BaseTask):
                                       self.dof_vel[:, :self.num_actuated_dof] * self.obs_scales.dof_vel,
                                       self.actions
                                       ), dim=-1)
+        
+        print("PROJECTED GRAVITY: ", self.projected_gravity.shape)
+        print("COMMANDS: ", self.commands.shape)
+        print("DOF_POS: ", self.dof_pos.shape)
+        # print("DEFAULT DOF_POS: ", self.default_dof_pos.shape)
+        # print("OBS_SCALES DOF_POS: ", self.obs_scales.dof_pos.shape)
+        print("DOF_VEL: ", self.dof_vel.shape)
+        # print("OBS_SCALES DOF_VEL: ", self.obs_scales.dof_vel.shape)
+        print("ACTIONS: ", self.actions.shape)
+        
 
-        if self.cfg.env.observe_two_prev_actions:
+        if self.cfg.env.observe_two_prev_actions: # True
             self.obs_buf = torch.cat((self.obs_buf,
                                       self.last_actions), dim=-1)
+            print("LAST ACTIONS: ", self.last_actions.shape)
 
-        if self.cfg.env.observe_timing_parameter:
+        if self.cfg.env.observe_timing_parameter: # False
             self.obs_buf = torch.cat((self.obs_buf,
                                       self.gait_indices.unsqueeze(1)), dim=-1)
 
-        if self.cfg.env.observe_clock_inputs:
+        if self.cfg.env.observe_clock_inputs: # True
             self.obs_buf = torch.cat((self.obs_buf,
                                       self.clock_inputs), dim=-1)
+            print("CLOCK INPUTS: ", self.clock_inputs.shape)
+            
+
+        print("OBS_BUF: ", self.obs_buf.shape)
+        print("====================================")
 
         # if self.cfg.env.observe_desired_contact_states:
         #     self.obs_buf = torch.cat((self.obs_buf,
         #                               self.desired_contact_states), dim=-1)
 
-        if self.cfg.env.observe_vel:
+        if self.cfg.env.observe_vel: # False
             if self.cfg.commands.global_reference:
                 self.obs_buf = torch.cat((self.root_states[:self.num_envs, 7:10] * self.obs_scales.lin_vel,
                                           self.base_ang_vel * self.obs_scales.ang_vel,
                                           self.obs_buf), dim=-1)
-            else:
+            else:                    # False
                 self.obs_buf = torch.cat((self.base_lin_vel * self.obs_scales.lin_vel,
                                           self.base_ang_vel * self.obs_scales.ang_vel,
                                           self.obs_buf), dim=-1)
 
-        if self.cfg.env.observe_only_ang_vel:
+        if self.cfg.env.observe_only_ang_vel: # False
             self.obs_buf = torch.cat((self.base_ang_vel * self.obs_scales.ang_vel,
                                       self.obs_buf), dim=-1)
 
-        if self.cfg.env.observe_only_lin_vel:
+        if self.cfg.env.observe_only_lin_vel: # False
             self.obs_buf = torch.cat((self.base_lin_vel * self.obs_scales.lin_vel,
                                       self.obs_buf), dim=-1)
 
-        if self.cfg.env.observe_yaw:
+        if self.cfg.env.observe_yaw: # False
             forward = quat_apply(self.base_quat, self.forward_vec)
             heading = torch.atan2(forward[:, 1], forward[:, 0]).unsqueeze(1)
             # heading_error = torch.clip(0.5 * wrap_to_pi(heading), -1., 1.).unsqueeze(1)
             self.obs_buf = torch.cat((self.obs_buf,
                                       heading), dim=-1)
 
-        if self.cfg.env.observe_contact_states:
+        if self.cfg.env.observe_contact_states: # False
             self.obs_buf = torch.cat((self.obs_buf, (self.contact_forces[:, self.feet_indices, 2] > 1.).view(
                 self.num_envs,
                 -1) * 1.0), dim=1)
@@ -380,7 +396,7 @@ class LeggedRobot(BaseTask):
         self.privileged_obs_buf = torch.empty(self.num_envs, 0).to(self.device)
         self.next_privileged_obs_buf = torch.empty(self.num_envs, 0).to(self.device)
 
-        if self.cfg.env.priv_observe_friction:
+        if self.cfg.env.priv_observe_friction: # True
             friction_coeffs_scale, friction_coeffs_shift = get_scale_shift(self.cfg.normalization.friction_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  (self.friction_coeffs[:, 0].unsqueeze(
@@ -390,7 +406,7 @@ class LeggedRobot(BaseTask):
                                                       (self.friction_coeffs[:, 0].unsqueeze(
                                                           1) - friction_coeffs_shift) * friction_coeffs_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_ground_friction:
+        if self.cfg.env.priv_observe_ground_friction: # False
             self.ground_friction_coeffs = self._get_ground_frictions(range(self.num_envs))
             ground_friction_coeffs_scale, ground_friction_coeffs_shift = get_scale_shift(
                 self.cfg.normalization.ground_friction_range)
@@ -402,7 +418,7 @@ class LeggedRobot(BaseTask):
                                                       (self.ground_friction_coeffs.unsqueeze(
                                                           1) - friction_coeffs_shift) * friction_coeffs_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_restitution:
+        if self.cfg.env.priv_observe_restitution: # True
             restitutions_scale, restitutions_shift = get_scale_shift(self.cfg.normalization.restitution_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  (self.restitutions[:, 0].unsqueeze(
@@ -412,7 +428,8 @@ class LeggedRobot(BaseTask):
                                                       (self.restitutions[:, 0].unsqueeze(
                                                           1) - restitutions_shift) * restitutions_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_base_mass:
+            
+        if self.cfg.env.priv_observe_base_mass: # False
             payloads_scale, payloads_shift = get_scale_shift(self.cfg.normalization.added_mass_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  (self.payloads.unsqueeze(1) - payloads_shift) * payloads_scale),
@@ -420,7 +437,8 @@ class LeggedRobot(BaseTask):
             self.next_privileged_obs_buf = torch.cat((self.next_privileged_obs_buf,
                                                       (self.payloads.unsqueeze(1) - payloads_shift) * payloads_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_com_displacement:
+            
+        if self.cfg.env.priv_observe_com_displacement: # False
             com_displacements_scale, com_displacements_shift = get_scale_shift(
                 self.cfg.normalization.com_displacement_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
@@ -431,7 +449,8 @@ class LeggedRobot(BaseTask):
                                                       (
                                                               self.com_displacements - com_displacements_shift) * com_displacements_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_motor_strength:
+            
+        if self.cfg.env.priv_observe_motor_strength: # False
             motor_strengths_scale, motor_strengths_shift = get_scale_shift(self.cfg.normalization.motor_strength_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  (
@@ -441,7 +460,7 @@ class LeggedRobot(BaseTask):
                                                       (
                                                               self.motor_strengths - motor_strengths_shift) * motor_strengths_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_motor_offset:
+        if self.cfg.env.priv_observe_motor_offset: # False
             motor_offset_scale, motor_offset_shift = get_scale_shift(self.cfg.normalization.motor_offset_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  (
@@ -451,7 +470,8 @@ class LeggedRobot(BaseTask):
                                                       (
                                                               self.motor_offsets - motor_offset_shift) * motor_offset_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_body_height:
+            
+        if self.cfg.env.priv_observe_body_height: # False
             body_height_scale, body_height_shift = get_scale_shift(self.cfg.normalization.body_height_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  ((self.root_states[:self.num_envs, 2]).view(
@@ -461,7 +481,8 @@ class LeggedRobot(BaseTask):
                                                       ((self.root_states[:self.num_envs, 2]).view(
                                                           self.num_envs, -1) - body_height_shift) * body_height_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_body_velocity:
+            
+        if self.cfg.env.priv_observe_body_velocity: # False
             body_velocity_scale, body_velocity_shift = get_scale_shift(self.cfg.normalization.body_velocity_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  ((self.base_lin_vel).view(self.num_envs,
@@ -471,7 +492,8 @@ class LeggedRobot(BaseTask):
                                                       ((self.base_lin_vel).view(self.num_envs,
                                                                                 -1) - body_velocity_shift) * body_velocity_scale),
                                                      dim=1)
-        if self.cfg.env.priv_observe_gravity:
+            
+        if self.cfg.env.priv_observe_gravity: # False
             gravity_scale, gravity_shift = get_scale_shift(self.cfg.normalization.gravity_range)
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  (self.gravities - gravity_shift) / gravity_scale),
@@ -479,11 +501,11 @@ class LeggedRobot(BaseTask):
             self.next_privileged_obs_buf = torch.cat((self.next_privileged_obs_buf,
                                                       (self.gravities - gravity_shift) / gravity_scale), dim=1)
 
-        if self.cfg.env.priv_observe_clock_inputs:
+        if self.cfg.env.priv_observe_clock_inputs: # False
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  self.clock_inputs), dim=-1)
 
-        if self.cfg.env.priv_observe_desired_contact_states:
+        if self.cfg.env.priv_observe_desired_contact_states: # False
             self.privileged_obs_buf = torch.cat((self.privileged_obs_buf,
                                                  self.desired_contact_states), dim=-1)
 
