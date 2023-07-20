@@ -9,8 +9,16 @@ import pickle as pkl
 
 from go1_gym.envs import *
 from go1_gym.envs.base.legged_robot_config import Cfg
-from go1_gym.envs.go1.go1_config import config_go1
-from go1_gym.envs.go1.velocity_tracking import VelocityTrackingEasyEnv
+
+robot = "aselsan"
+# robot = "go1"
+
+if robot == "go1":
+    from go1_gym.envs.go1.go1_config import config_go1
+    from go1_gym.envs.go1.velocity_tracking import VelocityTrackingEasyEnv
+elif robot == "aselsan":
+    from go1_gym.envs.aselsan.aselsan_config import config_go1
+    from go1_gym.envs.aselsan.velocity_tracking import VelocityTrackingEasyEnv
 
 from tqdm import tqdm
 
@@ -31,7 +39,8 @@ def load_policy(logdir):
 
 def load_env(label, headless=False):
     dirs = glob.glob(f"../runs/{label}/*")
-    logdir = sorted(dirs)[0]
+    logdir = sorted(dirs)[len(dirs)-1]
+    print("LOGDIR: " + str(logdir))
 
     with open(logdir + "/parameters.pkl", 'rb') as file:
         pkl_cfg = pkl.load(file)
@@ -60,7 +69,7 @@ def load_env(label, headless=False):
     Cfg.domain_rand.randomize_com_displacement = False
 
     Cfg.env.num_recording_envs = 1
-    Cfg.env.num_envs = 1
+    Cfg.env.num_envs = 25
     Cfg.terrain.num_rows = 5
     Cfg.terrain.num_cols = 5
     Cfg.terrain.border_size = 0
@@ -70,7 +79,7 @@ def load_env(label, headless=False):
 
     Cfg.domain_rand.lag_timesteps = 6
     Cfg.domain_rand.randomize_lag_timesteps = True
-    Cfg.control.control_type = "actuator_net"
+    Cfg.control.control_type = "P"
 
     from go1_gym.envs.wrappers.history_wrapper import HistoryWrapper
 
@@ -94,11 +103,12 @@ def play_go1(headless=True):
     import glob
     import os
 
-    label = "gait-conditioned-agility/pretrain-v0/train"
+    #label = "gait-conditioned-agility/pretrain-v0/train"
+    label = "gait-conditioned-agility/2023-07-19/train"
 
     env, policy = load_env(label, headless=headless)
 
-    num_eval_steps = 250
+    num_eval_steps = 1000
     gaits = {"pronking": [0, 0, 0],
              "trotting": [0.5, 0, 0],
              "bounding": [0, 0.5, 0],
@@ -106,12 +116,12 @@ def play_go1(headless=True):
 
     x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 1.5, 0.0, 0.0
     body_height_cmd = 0.0
-    step_frequency_cmd = 3.0
-    gait = torch.tensor(gaits["trotting"])
+    step_frequency_cmd = 5.0
+    gait = torch.tensor(gaits["bounding"])
     footswing_height_cmd = 0.08
     pitch_cmd = 0.0
     roll_cmd = 0.0
-    stance_width_cmd = 0.25
+    stance_width_cmd = 0.30
 
     measured_x_vels = np.zeros(num_eval_steps)
     target_x_vels = np.ones(num_eval_steps) * x_vel_cmd

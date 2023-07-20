@@ -325,20 +325,20 @@ class LeggedRobot(BaseTask):
                                       self.actions
                                       ), dim=-1)
         
-        print("PROJECTED GRAVITY: ", self.projected_gravity.shape)
-        print("COMMANDS: ", self.commands.shape)
-        print("DOF_POS: ", self.dof_pos.shape)
+        # print("PROJECTED GRAVITY: ", self.projected_gravity.shape)
+        # print("COMMANDS: ", self.commands.shape)
+        # print("DOF_POS: ", self.dof_pos.shape)
         # print("DEFAULT DOF_POS: ", self.default_dof_pos.shape)
         # print("OBS_SCALES DOF_POS: ", self.obs_scales.dof_pos.shape)
-        print("DOF_VEL: ", self.dof_vel.shape)
+        # print("DOF_VEL: ", self.dof_vel.shape)
         # print("OBS_SCALES DOF_VEL: ", self.obs_scales.dof_vel.shape)
-        print("ACTIONS: ", self.actions.shape)
+        # print("ACTIONS: ", self.actions.shape)
         
 
         if self.cfg.env.observe_two_prev_actions: # True
             self.obs_buf = torch.cat((self.obs_buf,
                                       self.last_actions), dim=-1)
-            print("LAST ACTIONS: ", self.last_actions.shape)
+            # print("LAST ACTIONS: ", self.last_actions.shape)
 
         if self.cfg.env.observe_timing_parameter: # False
             self.obs_buf = torch.cat((self.obs_buf,
@@ -347,11 +347,11 @@ class LeggedRobot(BaseTask):
         if self.cfg.env.observe_clock_inputs: # True
             self.obs_buf = torch.cat((self.obs_buf,
                                       self.clock_inputs), dim=-1)
-            print("CLOCK INPUTS: ", self.clock_inputs.shape)
+            # print("CLOCK INPUTS: ", self.clock_inputs.shape)
             
 
-        print("OBS_BUF: ", self.obs_buf.shape)
-        print("====================================")
+        # print("OBS_BUF: ", self.obs_buf.shape)
+        # print("====================================")
 
         # if self.cfg.env.observe_desired_contact_states:
         #     self.obs_buf = torch.cat((self.obs_buf,
