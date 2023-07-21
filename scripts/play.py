@@ -22,6 +22,7 @@ def load_policy(logdir):
     def policy(obs, info={}):
         i = 0
         latent = adaptation_module.forward(obs["obs_history"].to('cpu'))
+        print("latent", latent)
         action = body.forward(torch.cat((obs["obs_history"].to('cpu'), latent), dim=-1))
         info['latent'] = latent
         return action
@@ -133,6 +134,7 @@ def play_go1(headless=True):
         env.commands[:, 10] = pitch_cmd
         env.commands[:, 11] = roll_cmd
         env.commands[:, 12] = stance_width_cmd
+        # print(env.commands)
         obs, rew, done, info = env.step(actions)
 
         measured_x_vels[i] = env.base_lin_vel[0, 0]

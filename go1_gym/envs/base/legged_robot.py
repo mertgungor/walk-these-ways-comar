@@ -846,15 +846,23 @@ class LeggedRobot(BaseTask):
             self.command_sums[key][env_ids] = 0.
 
     def _step_contact_targets(self):
-        if self.cfg.env.observe_gait_commands:
+        if self.cfg.env.observe_gait_commands: # True
             frequencies = self.commands[:, 4]
             phases = self.commands[:, 5]
             offsets = self.commands[:, 6]
             bounds = self.commands[:, 7]
             durations = self.commands[:, 8]
             self.gait_indices = torch.remainder(self.gait_indices + self.dt * frequencies, 1.0)
+            print("=================================")
+            print("DT ", self.dt)
+            print("=================================")
+            print("=================================")
+            print("=================================")
+            print("=================================")
+            print("=================================")
 
-            if self.cfg.commands.pacing_offset:
+
+            if self.cfg.commands.pacing_offset: # False
                 foot_indices = [self.gait_indices + phases + offsets + bounds,
                                 self.gait_indices + bounds,
                                 self.gait_indices + offsets,
@@ -1540,9 +1548,7 @@ class LeggedRobot(BaseTask):
         self.dof_names = self.gym.get_asset_dof_names(self.robot_asset)
         self.num_bodies = len(body_names)
         self.num_dofs = len(self.dof_names)
-        print("------------ BODY NAMES ------------")
-        print(body_names)
-        print("------------ BODY NAMES ------------")
+
 
         feet_names = [s for s in body_names if self.cfg.asset.foot_name in s]
         penalized_contact_names = []
@@ -1741,6 +1747,7 @@ class LeggedRobot(BaseTask):
 
     def _parse_cfg(self, cfg):
         self.dt = self.cfg.control.decimation * self.sim_params.dt
+        print("dt: ", self.dt)
         self.obs_scales = self.cfg.obs_scales
         self.reward_scales = vars(self.cfg.reward_scales)
         self.curriculum_thresholds = vars(self.cfg.curriculum_thresholds)

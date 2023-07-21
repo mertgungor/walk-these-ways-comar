@@ -7,7 +7,6 @@ def train_go1(headless=True):
     # robot = "go1"
     robot = "aselsan"
 
-
     from go1_gym.envs.base.legged_robot_config import Cfg
 
     if robot == "go1":
